@@ -12,7 +12,7 @@ async function startServer() {
   try {
     await sequelize.authenticate();
     console.log("Database connection established successfully.");
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false });
     console.log("Database & tables created!");
   } catch (error) {
     console.error("Database sync failed:", error);

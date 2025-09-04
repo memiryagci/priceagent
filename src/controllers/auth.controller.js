@@ -54,10 +54,59 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-    return res.json({ token });
+    return res.json({ 
+      message: "Giriş başarılı",
+      user: { id: user.id, email: user.email, name: user.name },
+      token 
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Giriş sırasında hata oluştu" });
+  }
+};
+
+exports.changeEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const userId = req.user.id;
+
+    if (!email || !email.trim()) {
+      return res.status(400).json({ message: "E-posta adresi gereklidir" });
+    }
+
+    // E-posta format kontrolü
+    const emailRegex = /^[a-zA-ZğüşıöçĞÜŞİÖÇ0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Geçerli bir e-posta adresi girin" });
+    }
+
+    // Mevcut kullanıcıyı bul
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    // Aynı e-posta kontrolü
+    if (user.email === email) {
+      return res.status(400).json({ message: "Yeni e-posta mevcut e-posta ile aynı" });
+    }
+
+    // E-posta zaten kullanımda mı kontrol et
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(409).json({ message: "Bu e-posta adresi zaten kullanımda" });
+    }
+
+    // E-posta adresini güncelle
+    await user.update({ email });
+
+    return res.status(200).json({ 
+      message: "E-posta başarıyla değiştirildi",
+      user: { id: user.id, email: user.email, name: user.name }
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "E-posta değiştirme sırasında hata oluştu" });
   }
 };
 

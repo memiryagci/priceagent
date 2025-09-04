@@ -12,7 +12,9 @@ router.get("/health", (req, res) => {
 });
 
 router.use("/auth", require("./auth.routes"));
-router.use("/product", require("./product.route"));
+router.use("/products", require("./product.route"));
+router.use("/test", require("./test.routes"));
+router.use("/admin", require("./admin.routes"));
 
 module.exports = router;
 
